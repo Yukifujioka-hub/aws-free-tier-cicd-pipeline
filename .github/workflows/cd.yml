@@ -2,26 +2,42 @@ name: CD Pipeline
 
 on:
   push:
-    branches: ["main"]
+    branches: [ "main" ]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          timeout: 30s
           script: |
+            set -e
+
+            # ① 作業ディレクトリ
+            cd ~
+            
+            # ② リポジトリがなければ clone
+            if [ ! -d "aws-free-tier-cicd-pipeline" ]; then
+              git clone git@github.com:Yukifujioka-hub/aws-free-tier-cicd-pipeline.git
+            fi
+
             cd aws-free-tier-cicd-pipeline
+
+            # ③ 最新コード取得
             git pull origin main
+
+            # ④ Docker build
             docker build -t myapp:latest ./app
+
+            # ⑤ 古いコンテナ停止・削除
             docker stop myapp || true
             docker rm myapp || true
+
+            # ⑥ 新しいコンテナ起動
             docker run -d -p 80:5000 --name myapp myapp:latest

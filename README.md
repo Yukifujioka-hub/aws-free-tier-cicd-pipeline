@@ -4,10 +4,12 @@
 
 This project demonstrates a simple but practical CI/CD pipeline using AWS EC2 (Free Tier), Docker, Terraform, and GitHub Actions.
 
-A Flask web application fetches a random quote from an external API (ZenQuotes) and displays it on a web page.
-Whenever code is pushed to GitHub, the application is automatically deployed to an EC2 instance via GitHub Actions.
+The main goal of this project is to understand and explain the end-to-end deployment flow**, including:
+- how GitHub Actions triggers deployments
+- how Docker images are built, replaced, and cleaned up
+- how health checks and remote commands are executed safely
 
-The goal of this project is to understand **how CI/CD, Docker, and cloud infrastructure work together in a real-world flow**, rather than focusing on application complexity.
+Rather than focusing on application complexity, this project focuses on operational reliability and deployment automation**, which are essential skills for DevOps / Cloud Engineers.
 
 ---
 
@@ -39,6 +41,14 @@ Flask Application (Port 80)
   - Used to provision AWS infrastructure (EC2, security groups)
 - **ZenQuotes API**
   - External API used to fetch a random quote
+
+Additional operational components:
+
+- **AWS Systems Manager (SSM)**
+  - Used to execute remote Docker commands without direct SSH login
+- **Python automation scripts**
+  - Perform health checks before deployment
+  - Trigger SSM `send_command` only when the service is healthy
 
 ---
 
@@ -86,7 +96,28 @@ Steps:
 4. Stops and removes the existing container (if any)
 5. Runs a new container with the updated image
 
-As a result:
+---
+
+## Deployment Safety Mechanisms
+
+To prevent broken deployments and unnecessary downtime, the following safeguards are implemented:
+
+### Health Check Before Deployment
+- A Python script (`health_check.py`) checks the running application via HTTP
+- Deployment proceeds only if HTTP 200 is returned
+- This prevents replacing a healthy service with a broken one
+
+### Remote Command Execution via SSM
+- Docker commands are executed using AWS Systems Manager
+- No direct SSH login is required for deployment
+- This improves security and auditability
+
+### Docker Image Cleanup
+- Old and unused Docker images are removed after deployment
+- Prevents disk space exhaustion on Free Tier EC2 instances
+
+
+As a result of these deployment safeguards:
 - **No manual SSH or deployment steps are required**
 - The running application is always in sync with the GitHub repository
 
@@ -122,10 +153,10 @@ http://<EC2_PUBLIC_IP>/
 
 ## 7. Lessons Learned
 
-- CI/CD pipelines focus on **repeatability and safety**, not speed
-- Docker eliminates environment differences between local and production
-- GitHub Actions can fully automate deployment for small-scale systems
-- Infrastructure as Code (Terraform) reduces manual configuration errors
+- CI/CD is not only about automation, but about reducing risk
+- Health checks are essential before replacing running services
+- Docker image cleanup is necessary on long-running EC2 instances
+- SSM provides a safer alternative to SSH-based deployments
 
 ---
 

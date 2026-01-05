@@ -4,17 +4,21 @@ from botocore.exceptions import ClientError
 
 INSTANCE_ID = "i-073b770df4e9e361b"
 REGION = "us-east-1"
-CONTAINER_NAME = "sample-app"
-IMAGE = "nginx:latest"
+CONTAINER_NAME = "myapp"
+IMAGE_NAME = "myapp:latest"
 
 ssm = boto3.client("ssm", region_name=REGION)
 
 commands = [
     "echo '=== Deploy start ==='",
-    f"sudo docker pull {IMAGE}",
+
+    "cd ~/aws-free-tier-cicd-pipeline && git pull origin main",
+
+    f"sudo docker build -t {IMAGE_NAME} ./app",
+
     f"sudo docker stop {CONTAINER_NAME} || true",
     f"sudo docker rm {CONTAINER_NAME} || true",
-    f"sudo docker run -d --name {CONTAINER_NAME} -p 80:80 {IMAGE}",
+    f"sudo docker run -d --name {CONTAINER_NAME} -p 80:80 {IMAGE_NAME}",
 
     "echo '=== Image cleanup ==='",
     "sudo docker image prune -f",

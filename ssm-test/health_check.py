@@ -1,7 +1,7 @@
 import requests
 import sys
 
-EC2_URL = "http://13.220.165.237/"
+EC2_URL = "http://44.200.228.146/"
 TIMEOUT = 5
 
 print("=== Health Check Start ===")

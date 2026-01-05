@@ -29,8 +29,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install boto3 requests
 
-      - name: Health check
-        run: python ssm-test/health_check.py
-
       - name: Deploy via SSM
         run: python ssm-test/send_command.py
+
+      - name: Health check
+        run: python ssm-test/health_check.py

@@ -96,6 +96,17 @@ Steps:
 4. Stops and removes the existing container (if any)
 5. Runs a new container with the updated image
 
+#### Important Implementation Detail: Docker Port Mapping
+
+The Flask application runs on port `5000` inside the container, while the service is exposed on port `80` on the EC2 host.
+
+During implementation, an incorrect port mapping (`-p 80:80`) caused the container to run successfully but reject all incoming connections.
+
+This was resolved by correctly mapping the ports as follows:
+
+```bash
+docker run -d --name myapp -p 80:5000 myapp:latest
+
 ---
 
 ## Deployment Safety Mechanisms
@@ -167,3 +178,4 @@ http://<EC2_PUBLIC_IP>/
 - Push Docker images to Amazon ECR
 - Implement Blue/Green deployment
 - Add monitoring and logging with CloudWatch
+- A container can start successfully even when the application is not reachable due to incorrect port mapping

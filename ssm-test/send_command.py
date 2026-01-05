@@ -18,7 +18,7 @@ commands = [
 
     f"sudo docker stop {CONTAINER_NAME} || true",
     f"sudo docker rm {CONTAINER_NAME} || true",
-    f"sudo docker run -d --name {CONTAINER_NAME} -p 80:80 {IMAGE_NAME}",
+    f"sudo docker run -d --name {CONTAINER_NAME} -p 80:5000 {IMAGE_NAME}",
 
     "echo '=== Image cleanup ==='",
     "sudo docker image prune -f",

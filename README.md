@@ -4,30 +4,21 @@
 
 This project demonstrates a simple but practical CI/CD pipeline using AWS EC2 (Free Tier), Docker, Terraform, and GitHub Actions.
 
-The main goal of this project is to understand and explain the end-to-end deployment flow**, including:
+The main goal of this project is to understand and explain the end-to-end deployment flow, including:
 - how GitHub Actions triggers deployments
 - how Docker images are built, replaced, and cleaned up
 - how health checks and remote commands are executed safely
 
-Rather than focusing on application complexity, this project focuses on operational reliability and deployment automation**, which are essential skills for DevOps / Cloud Engineers.
+Rather than focusing on application complexity, this project focuses on operational reliability and deployment automation, which are essential skills for DevOps / Cloud Engineers.
 
 ---
 
 ## 2. Architecture
 
-Developer
-|
-| git push
-v
-GitHub Repository
-|
-| GitHub Actions (CI/CD)
-v
-EC2 (Ubuntu)
-|
-| Docker build & run
-v
-Flask Application (Port 80)
+The following diagram illustrates the end-to-end CI/CD and deployment flow.
+
+![Architecture Diagram](docs/architecture.png)
+
 
 ### Components
 
@@ -90,11 +81,12 @@ Triggered on:
 - `push` to `main`
 
 Steps:
-1. GitHub Actions connects to EC2 via SSH
-2. Pulls the latest code from GitHub
-3. Builds a new Docker image on EC2
-4. Stops and removes the existing container (if any)
-5. Runs a new container with the updated image
+1. GitHub Actions performs a health check against the running service
+2. If healthy, GitHub Actions triggers AWS SSM Run Command
+3. EC2 pulls the latest code from GitHub
+4. Builds a new Docker image on EC2
+5. Stops and removes the existing container (if any)
+6. Runs a new container with the updated image
 
 #### Important Implementation Detail: Docker Port Mapping
 
@@ -106,6 +98,7 @@ This was resolved by correctly mapping the ports as follows:
 
 ```bash
 docker run -d --name myapp -p 80:5000 myapp:latest
+```
 
 ---
 
@@ -152,7 +145,8 @@ http://<EC2_PUBLIC_IP>/
 
 ## 6. Security & Cost Considerations
 
-- SSH access is restricted via Security Group rules
+- Direct SSH access is restricted via Security Group rules
+- Deployment and operational commands are executed via AWS Systems Manager (SSM)
 - GitHub Secrets are used to store:
   - EC2 public IP
   - SSH username
@@ -168,6 +162,7 @@ http://<EC2_PUBLIC_IP>/
 - Health checks are essential before replacing running services
 - Docker image cleanup is necessary on long-running EC2 instances
 - SSM provides a safer alternative to SSH-based deployments
+- A container can start successfully even when the application is not reachable due to incorrect port mapping
 
 ---
 
@@ -178,4 +173,3 @@ http://<EC2_PUBLIC_IP>/
 - Push Docker images to Amazon ECR
 - Implement Blue/Green deployment
 - Add monitoring and logging with CloudWatch
-- A container can start successfully even when the application is not reachable due to incorrect port mapping
